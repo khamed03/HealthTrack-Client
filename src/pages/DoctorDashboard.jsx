@@ -1,8 +1,6 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button, ListGroup } from 'react-bootstrap';
 
-
-
 const DoctorDashboard = () => {
   // Mocked list of patients — replace with data from API
   const patients = [
@@ -49,7 +47,6 @@ const DoctorDashboard = () => {
     </Container>
   );
 };
-
 
 
 export default DoctorDashboard;
