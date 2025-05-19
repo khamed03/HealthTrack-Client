@@ -1,7 +1,5 @@
 import React from 'react';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-import AppNavbar from '../components/Navbar';
-
 
 const Login = () => {
   const handleLogin = () => {

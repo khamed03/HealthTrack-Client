@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button, ListGroup } from 'react-bootstrap';
-import AppNavbar from '../components/Navbar';
+
 
 
 const DoctorDashboard = () => {
