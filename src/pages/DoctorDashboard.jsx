@@ -17,18 +17,6 @@ const DoctorDashboard = () => {
   return (
     <Container fluid className="vh-100">
       <Row className="h-100">
-        {/* Sidebar */}
-        <Col md={3} className="bg-primary text-white p-4">
-          <h4>HealthTrack</h4>
-          <hr className="bg-white" />
-          <ListGroup variant="flush">
-            <ListGroup.Item className="bg-primary text-white border-0">Dashboard</ListGroup.Item>
-            <ListGroup.Item className="bg-primary text-white border-0">My Patients</ListGroup.Item>
-            <ListGroup.Item className="bg-primary text-white border-0">Settings</ListGroup.Item>
-            <ListGroup.Item className="bg-primary text-white border-0">Logout</ListGroup.Item>
-          </ListGroup>
-        </Col>
-
         {/* Main Content */}
         <Col md={9} className="p-4 bg-light">
           <h3 className="mb-4">Welcome, Dr. Ahmad</h3>
@@ -59,5 +47,6 @@ const DoctorDashboard = () => {
     </Container>
   );
 };
+
 
 export default DoctorDashboard;
