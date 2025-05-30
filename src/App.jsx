@@ -1,26 +1,38 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
+import Home from './pages/Home';
 import DoctorDashboard from './pages/DoctorDashboard';
-import SidebarLayout from './components/Sidebar';
-import MedicalRecordView from './pages/MedicalRecordView';
-import AddMedicalRecord from './pages/AddMedicalRecord';
+import ManagePatients from './pages/ManagePatients';
+import MedicalRecords from './pages/AddMedicalRecord';
+import Appointments from './pages/Appointments';
+import Layout from './components/Layout';
 
+const App = () => {
+  const { isLoading, isAuthenticated } = useAuth0();
 
+  if (isLoading) return <p>Loading...</p>;
 
-function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route element={<SidebarLayout />}>
-          <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
-          <Route path="/records/:patientId" element={<MedicalRecordView/>} />
-          <Route path="/records/:patientId/add" element={<AddMedicalRecord />} />
+    <Routes>
+      <Route path="/" element={<Home />} />
+
+      {/* Protected layout with sidebar */}
+      {isAuthenticated && (
+        <Route path="/" element={<Layout />}>
+          <Route path="dashboard" element={<DoctorDashboard />} />
+          <Route path="patients" element={<ManagePatients />} />
+          <Route path="records" element={<MedicalRecords />} />
+          <Route path="appointments" element={<Appointments />} />
         </Route>
-      </Routes>
-    </Router>
+      )}
+
+
+      {!isAuthenticated && (
+        <Route path="*" element={<Navigate to="/" replace />} />
+      )}
+    </Routes>
   );
-}
+};
 
 export default App;

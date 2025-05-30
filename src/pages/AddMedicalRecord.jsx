@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Container, Card, Form, Button } from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useAuth0 } from '@auth0/auth0-react';
+import axios from 'axios';
 
 const AddMedicalRecord = () => {
   const { patientId } = useParams();
+  const { getAccessTokenSilently, user, isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -14,75 +17,50 @@ const AddMedicalRecord = () => {
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = await getAccessTokenSilently();
 
-    // You’ll replace this with an actual POST request to the backend
-    console.log('Submitting record:', { ...formData, patientId });
+    const newRecord = {
+      patient_id: patientId,
+      date: formData.date,
+      diagnosis: formData.diagnosis,
+      treatment: formData.treatment,
+      notes: formData.notes,
+      created_by: user.sub.split('|')[1] // extract only the user ID part
+    };
 
-    // Redirect to records page after submission
-    navigate(`/records/${patientId}`);
+    try {
+      await axios.post('http://localhost:5000/api/records', newRecord, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      navigate(`/records/${patientId}`);
+    } catch (err) {
+      console.error('Save failed:', err.response?.data || err.message);
+      alert('Failed to save record');
+    }
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (!isAuthenticated) return <p>You must be logged in to add a record.</p>;
 
   return (
-    <Container>
-      <Card className="p-4 mt-4 shadow-sm">
-        <h4 className="mb-4">Add New Medical Record</h4>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Label>Date</Form.Label>
-            <Form.Control
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Diagnosis</Form.Label>
-            <Form.Control
-              type="text"
-              name="diagnosis"
-              placeholder="e.g. Type 2 Diabetes"
-              value={formData.diagnosis}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Treatment</Form.Label>
-            <Form.Control
-              type="text"
-              name="treatment"
-              placeholder="e.g. Metformin 500mg"
-              value={formData.treatment}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>Notes</Form.Label>
-            <Form.Control
-              as="textarea"
-              name="notes"
-              rows={3}
-              value={formData.notes}
-              onChange={handleChange}
-            />
-          </Form.Group>
-
-          <Button type="submit" variant="primary">Save Record</Button>
-        </Form>
-      </Card>
-    </Container>
+    <form onSubmit={handleSubmit}>
+      <input type="date" name="date" onChange={handleChange} required />
+      <input type="text" name="diagnosis" placeholder="Diagnosis" onChange={handleChange} required />
+      <input type="text" name="treatment" placeholder="Treatment" onChange={handleChange} required />
+      <textarea name="notes" placeholder="Notes" onChange={handleChange}></textarea>
+      <button type="submit">Submit</button>
+    </form>
   );
 };
 

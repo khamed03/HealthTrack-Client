@@ -1,55 +1,105 @@
-import React from 'react';
-import { Container, Row, Col, Card, Button, ListGroup } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Container, Card, Row, Col, Table } from 'react-bootstrap';
+import axios from 'axios';
+import { useAuth0 } from '@auth0/auth0-react';
 
-
+console.log('Doctor dashboard loaded');
 
 const DoctorDashboard = () => {
-  // Mocked list of patients — replace with data from API
-  const patients = [
-    { id: 1, name: 'Ahmad Yasin', age: 45, condition: 'Diabetes' },
-    { id: 2, name: 'Layla Nassar', age: 30, condition: 'Hypertension' },
-    { id: 3, name: 'Mohammed Kareem', age: 65, condition: 'Asthma' },
-  ];
+  const { user, getAccessTokenSilently } = useAuth0();
+  const [patients, setPatients] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [appointments, setAppointments] = useState([]);
 
-  const handleViewRecords = (id) => {
-    // Example: navigate(`/records/${id}`)
-    console.log(`View records for patient ID ${id}`);
+  const doctorId = user.sub.split('|')[1];
+  const baseURL = 'http://localhost:5000';
+
+  useEffect(() => {
+  const fetchData = async () => {
+    const token = await getAccessTokenSilently();
+
+    const [patientsRes, recordsRes, apptsRes] = await Promise.all([
+      axios.get(`${baseURL}/api/patients`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      axios.get(`${baseURL}/api/records`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      axios.get(`${baseURL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+    ]);
+
+    setPatients(patientsRes.data);
+    setRecords(recordsRes.data.filter(r => r.created_by === doctorId));
+    setAppointments(apptsRes.data.filter(a => a.doctor_id === doctorId));
   };
 
-  return (
-    <Container fluid className="vh-100">
-      <Row className="h-100">
-        {/* Main Content */}
-        <Col md={9} className="p-4 bg-light">
-          <h3 className="mb-4">Welcome, Dr. Ahmad</h3>
+  fetchData();
+}, [getAccessTokenSilently, doctorId]);
 
-          <Row xs={1} md={2} lg={2} className="g-4">
-            {patients.map((patient) => (
-              <Col key={patient.id}>
-                <Card className="shadow-sm">
-                  <Card.Body>
-                    <Card.Title>{patient.name}</Card.Title>
-                    <Card.Text>
-                      <strong>Age:</strong> {patient.age} <br />
-                      <strong>Condition:</strong> {patient.condition}
-                    </Card.Text>
-                    <Button
-                      variant="primary"
-                      onClick={() => handleViewRecords(patient.id)}
-                    >
-                      View Records
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+
+  const today = new Date().toISOString().split('T')[0];
+  const todaysAppointments = appointments.filter(a => a.date?.startsWith(today));
+
+  return (
+    <Container className="mt-4">
+      <h3>Doctor Dashboard</h3>
+
+      <Row className="mb-4">
+        <Col md={4}>
+          <Card bg="primary" text="white" className="mb-3">
+            <Card.Body>
+              <Card.Title>Patients</Card.Title>
+              <Card.Text>{patients.length}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card bg="success" text="white" className="mb-3">
+            <Card.Body>
+              <Card.Title>Medical Records</Card.Title>
+              <Card.Text>{records.length}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card bg="warning" text="dark" className="mb-3">
+            <Card.Body>
+              <Card.Title>Today's Appointments</Card.Title>
+              <Card.Text>{todaysAppointments.length}</Card.Text>
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
+
+      <h5>Today's Appointments</h5>
+      <Table bordered hover>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Complaint</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {todaysAppointments.length === 0 ? (
+            <tr>
+              <td colSpan="3" className="text-center">No appointments for today.</td>
+            </tr>
+          ) : (
+            todaysAppointments.map((appt) => (
+              <tr key={appt.id}>
+                <td>{appt.patient_name}</td>
+                <td>{appt.complaint}</td>
+                <td>{appt.date?.split('T')[1]?.substring(0, 5) || 'N/A'}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </Table>
     </Container>
   );
 };
-
-
 
 export default DoctorDashboard;
