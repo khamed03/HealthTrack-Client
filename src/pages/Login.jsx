@@ -1,42 +1,67 @@
-import React from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Form, Button, Container, Alert } from 'react-bootstrap';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const handleLogin = () => {
-    // This is where you’ll trigger Auth0 login
-    console.log("Login clicked");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+
+      const { token, role, user_id } = res.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+      localStorage.setItem('user_id', user_id);
+
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed.');
+    }
   };
 
   return (
-    <Container fluid className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <Row>
-        <Col>
-          <Card style={{ width: '25rem' }} className="p-4 shadow-sm">
-            <Card.Body>
-              <Card.Title className="mb-4 text-center">HealthTrack Login</Card.Title>
-              <Form>
-                <Form.Group className="mb-3" controlId="formEmail">
-                  <Form.Label>Email address</Form.Label>
-                  <Form.Control type="email" placeholder="Enter email" />
-                </Form.Group>
+    <Container className="mt-5" style={{ maxWidth: '400px' }}>
+      <h3 className="mb-4">Login</h3>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Form onSubmit={handleLogin}>
+        <Form.Group className="mb-3">
+          <Form.Label>Email</Form.Label>
+          <Form.Control
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Form.Group>
 
-                <Form.Group className="mb-4" controlId="formPassword">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control type="password" placeholder="Password" />
-                </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Form.Group>
 
-                <Button variant="primary" type="button" className="w-100" onClick={handleLogin}>
-                  Login
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+        <Button variant="primary" type="submit" className="w-100">
+          Login
+        </Button>
+      </Form>
     </Container>
   );
 };
 
 
 export default Login;
+
 

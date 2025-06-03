@@ -1,27 +1,38 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+import { Routes, Route, Navigate } from 'react-router-dom';
+// import Home from './pages/Home';
+import Dashboard from './pages/DoctorDashboard';
+import Patients from './pages/Patients';
+import Appointments from './pages/Appointments';
+import Records from './pages/records';
 import Login from './pages/Login';
-import DoctorDashboard from './pages/DoctorDashboard';
-import SidebarLayout from './components/Sidebar';
-import MedicalRecordView from './pages/MedicalRecordView';
-import AddMedicalRecord from './pages/AddMedicalRecord';
+import Register from './pages/Register';
+import Layout from './components/Layout'; // includes Sidebar
 
+const App = () => {
+  const token = localStorage.getItem("token");
 
-
-function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route element={<SidebarLayout />}>
-          <Route path="/DoctorDashboard" element={<DoctorDashboard />} />
-          <Route path="/records/:patientId" element={<MedicalRecordView/>} />
-          <Route path="/records/:patientId/add" element={<AddMedicalRecord />} />
+    <Routes>
+      {/* Public Pages */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* Protected Pages with Sidebar */}
+      {token && (
+        <Route path="/" element={<Layout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="patients" element={<Patients />} />
+          <Route path="appointments" element={<Appointments />} />
+          <Route path="records" element={<Records />} />
         </Route>
-      </Routes>
-    </Router>
+      )}
+
+      {/* Fallback */}
+      {!token && <Route path="*" element={<Navigate to="/login" replace />} />}
+    </Routes>
   );
-}
+};
 
 export default App;

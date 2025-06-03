@@ -1,44 +1,66 @@
 import React from 'react';
-import { Container, Row, Col, ListGroup, Button } from 'react-bootstrap';
-import { Outlet, useNavigate } from 'react-router-dom';
-
+import { ListGroup } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
+  const role = localStorage.getItem('role');
+  const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
+  // ❌ No token = no sidebar
+  if (!token || !role) return null;
+
   const handleLogout = () => {
-    // Replace with actual Auth0 logout or auth cleanup
-    console.log("Logged out");
-    navigate('/');
+    localStorage.clear();
+    navigate('/login');
   };
 
   return (
-    <Container fluid className="vh-100">
-      <Row className="h-100">
-        {/* Sidebar */}
-        <Col md={2} className="bg-primary text-white p-3">
-          <h5 className="text-white mb-4">HealthTrack</h5>
-          <ListGroup variant="flush">
-            <ListGroup.Item className="bg-primary text-white border-0" action onClick={() => navigate('/DoctorDashboard')}>
+    <div className="vh-100 bg-light p-3 border-end">
+      <h5 className="mb-4">HealthTrack</h5>
+      <ListGroup variant="flush">
+
+        {role === 'doctor' && (
+          <>
+            <ListGroup.Item action as={Link} to="/dashboard">
               Dashboard
             </ListGroup.Item>
-            <ListGroup.Item className="bg-primary text-white border-0" action onClick={() => navigate('/records/123')}>
+            <ListGroup.Item action as={Link} to="/patients">
+              Patients
+            </ListGroup.Item>
+            <ListGroup.Item action as={Link} to="/appointments">
+              Appointments
+            </ListGroup.Item>
+            <ListGroup.Item action as={Link} to="/records">
               Medical Records
             </ListGroup.Item>
-          </ListGroup>
-          <div className="mt-auto pt-4">
-            <Button variant="outline-light" onClick={handleLogout} className="w-100">
-              Logout
-            </Button>
-          </div>
-        </Col>
+          </>
+        )}
 
-        {/* Main Content Area */}
-        <Col md={10} className="p-4 bg-light">
-          <Outlet />
-        </Col>
-      </Row>
-    </Container>
+        {role === 'secretary' && (
+          <>
+            <ListGroup.Item action as={Link} to="/patients">
+              Manage Patients
+            </ListGroup.Item>
+            <ListGroup.Item action as={Link} to="/appointments">
+              Manage Appointments
+            </ListGroup.Item>
+            <ListGroup.Item action as={Link} to="/records">
+              View Records
+            </ListGroup.Item>
+          </>
+        )}
+
+        <ListGroup.Item
+          action
+          variant="danger"
+          onClick={handleLogout}
+          className="mt-3"
+        >
+          Logout
+        </ListGroup.Item>
+      </ListGroup>
+    </div>
   );
 };
 
