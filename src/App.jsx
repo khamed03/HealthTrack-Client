@@ -1,36 +1,36 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
-import Home from './pages/Home';
-import DoctorDashboard from './pages/DoctorDashboard';
-import ManagePatients from './pages/ManagePatients';
-import MedicalRecords from './pages/AddMedicalRecord';
+// import Home from './pages/Home';
+import Dashboard from './pages/dashboard';
+import Patients from './pages/Patients';
 import Appointments from './pages/Appointments';
-import Layout from './components/Layout';
+import Records from './pages/records';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Layout from './components/Layout'; // includes Sidebar
 
 const App = () => {
-  const { isLoading, isAuthenticated } = useAuth0();
-
-  if (isLoading) return <p>Loading...</p>;
+  const token = localStorage.getItem("token");
 
   return (
     <Routes>
+      {/* Public Pages */}
       <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-      {/* Protected layout with sidebar */}
-      {isAuthenticated && (
+      {/* Protected Pages with Sidebar */}
+      {token && (
         <Route path="/" element={<Layout />}>
-          <Route path="dashboard" element={<DoctorDashboard />} />
-          <Route path="patients" element={<ManagePatients />} />
-          <Route path="records" element={<MedicalRecords />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="patients" element={<Patients />} />
           <Route path="appointments" element={<Appointments />} />
+          <Route path="records" element={<Records />} />
         </Route>
       )}
 
-
-      {!isAuthenticated && (
-        <Route path="*" element={<Navigate to="/" replace />} />
-      )}
+      {/* Fallback */}
+      {!token && <Route path="*" element={<Navigate to="/login" replace />} />}
     </Routes>
   );
 };

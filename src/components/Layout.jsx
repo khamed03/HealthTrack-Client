@@ -1,21 +1,14 @@
 import React from 'react';
-import Sidebar from './Sidebar';
-import { Container, Row, Col } from 'react-bootstrap';
 import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
 
-const Layout = () => {
-  return (
-    <Container fluid>
-      <Row>
-        <Col xs={2} className="bg-light">
-          <Sidebar />
-        </Col>
-        <Col xs={10} className="p-4">
-          <Outlet /> {/* renders child route */}
-        </Col>
-      </Row>
-    </Container>
-  );
-};
+const Layout = () => (
+  <div className="d-flex">
+    <Sidebar />
+    <div className="flex-grow-1 p-4">
+      <Outlet />
+    </div>
+  </div>
+);
 
 export default Layout;

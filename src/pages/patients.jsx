@@ -1,20 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Form, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
-// 🔐 Role helper
-const getUserRole = (user) => {
-  if (!user) return null;
-  if (user.email.includes('doctor')) return 'doctor';
-  if (user.email.includes('secretary')) return 'secretary';
-  return 'guest';
-};
-
-const ManagePatients = () => {
-  const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
-  const role = getUserRole(user);
-
+const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -25,11 +14,16 @@ const ManagePatients = () => {
   });
 
   const baseURL = 'http://localhost:5000';
+  const navigate = useNavigate();
 
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const user_id = localStorage.getItem('user_id');
+
+  
 
   useEffect(() => {
     const fetchPatients = async () => {
-      const token = await getAccessTokenSilently();
       const res = await axios.get(`${baseURL}/api/patients`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -37,23 +31,14 @@ const ManagePatients = () => {
     };
 
     fetchPatients();
-  }, [getAccessTokenSilently]);
-
-  
-  if (!isAuthenticated || role !== 'secretary') {
-    return <h3 className="text-danger text-center mt-5">Unauthorized</h3>;
-  }
+  }, [token]);
 
   const handleInputChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async () => {
-    const token = await getAccessTokenSilently();
-    const payload = {
-      ...formData,
-      created_by: user.sub.split('|')[1]
-    };
+    const payload = { ...formData, created_by: user_id };
 
     if (editingPatient) {
       await axios.put(`${baseURL}/api/patients/${editingPatient.patient_id}`, payload, {
@@ -65,14 +50,13 @@ const ManagePatients = () => {
       });
     }
 
-    setShowForm(false);
-    setEditingPatient(null);
-    setFormData({ full_name: '', dob: '', gender: '' });
-
     const res = await axios.get(`${baseURL}/api/patients`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setPatients(res.data);
+    setShowForm(false);
+    setEditingPatient(null);
+    setFormData({ full_name: '', dob: '', gender: '' });
   };
 
   const handleEdit = (patient) => {
@@ -86,7 +70,6 @@ const ManagePatients = () => {
   };
 
   const handleDelete = async (id) => {
-    const token = await getAccessTokenSilently();
     await axios.delete(`${baseURL}/api/patients/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -97,12 +80,20 @@ const ManagePatients = () => {
     setPatients(res.data);
   };
 
+  if (!token || !role) {
+    navigate('/login');
+    return null;
+  }
+
   return (
     <Container className="mt-4">
-      <h3 className="mb-4">Manage Patients</h3>
-      <Button className="mb-3" onClick={() => setShowForm(true)}>
-        Add Patient
-      </Button>
+      <h3>Manage Patients</h3>
+
+      {role === 'secretary' && (
+        <Button className="mb-3" onClick={() => setShowForm(true)}>
+          Add Patient
+        </Button>
+      )}
 
       <Table striped bordered hover>
         <thead>
@@ -110,7 +101,7 @@ const ManagePatients = () => {
             <th>Name</th>
             <th>DOB</th>
             <th>Gender</th>
-            <th>Actions</th>
+            {(role === 'secretary' || role === 'doctor') && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -120,19 +111,29 @@ const ManagePatients = () => {
               <td>{p.dob?.split('T')[0]}</td>
               <td>{p.gender}</td>
               <td>
-                <Button size="sm" variant="info" onClick={() => handleEdit(p)}>
+                <Button
+                  size="sm"
+                  variant="info"
+                  onClick={() => handleEdit(p)}
+                >
                   Edit
                 </Button>{' '}
-                <Button size="sm" variant="danger" onClick={() => handleDelete(p.patient_id)}>
-                  Delete
-                </Button>
+                {role === 'secretary' && (
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(p.patient_id)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
 
-      {/* Modal Form */}
+      {/* Modal */}
       <Modal show={showForm} onHide={() => setShowForm(false)}>
         <Modal.Header closeButton>
           <Modal.Title>{editingPatient ? 'Edit Patient' : 'Add Patient'}</Modal.Title>
@@ -163,8 +164,13 @@ const ManagePatients = () => {
 
             <Form.Group>
               <Form.Label>Gender</Form.Label>
-              <Form.Select name="gender" value={formData.gender} onChange={handleInputChange} required>
-                <option value="">Select Gender</option>
+              <Form.Select
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">-- Select Gender --</option>
                 <option>Male</option>
                 <option>Female</option>
               </Form.Select>
@@ -184,4 +190,4 @@ const ManagePatients = () => {
   );
 };
 
-export default ManagePatients;
+export default Patients;

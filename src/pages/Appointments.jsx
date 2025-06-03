@@ -1,205 +1,205 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Container } from 'react-bootstrap';
 import axios from 'axios';
-import { useAuth0 } from '@auth0/auth0-react';
-
-const getUserRole = (user) => {
-  if (!user) return null;
-  if (user.email.includes('doctor')) return 'doctor';
-  if (user.email.includes('secretary')) return 'secretary';
-  return 'guest';
-};
+import { useNavigate } from 'react-router-dom';
 
 const Appointments = () => {
-  const { user, getAccessTokenSilently } = useAuth0();
-  const role = getUserRole(user);
-
   const [appointments, setAppointments] = useState([]);
-  const [formData, setFormData] = useState({ doctor_id: '', patient_name: '', date: '', complaint: '' });
+  const [patients, setPatients] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [formData, setFormData] = useState({
+    patient_id: '',
+    date: '',
+    complaint: ''
+  });
 
   const baseURL = 'http://localhost:5000';
+  const navigate = useNavigate();
 
-  const fetchAppointments = async () => {
-    const token = await getAccessTokenSilently();
-    const res = await axios.get(`${baseURL}/api/appointments`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  const role = localStorage.getItem("role"); // e.g. 'doctor' or 'secretary'
+  const token = localStorage.getItem("token");
 
-    const allAppointments = res.data;
-    if (role === 'doctor') {
-      const doctorId = user.sub.split('|')[1];
-      const filtered = allAppointments.filter(a => a.doctor_id === doctorId);
-      setAppointments(filtered);
-    } else {
-      setAppointments(allAppointments);
-    }
-  };
+  // 🚫 Not logged in? Kick out
+  
 
   useEffect(() => {
-  const fetchAppointments = async () => {
-    const token = await getAccessTokenSilently();
-    const res = await axios.get(`${baseURL}/api/appointments`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const fetchData = async () => {
+      try {
+        const apptRes = await axios.get(`${baseURL}/api/appointments`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-    const allAppointments = res.data;
-    if (role === 'doctor') {
-      const doctorId = user.sub.split('|')[1];
-      const filtered = allAppointments.filter(a => a.doctor_id === doctorId);
-      setAppointments(filtered);
-    } else {
-      setAppointments(allAppointments);
-    }
-  };
+        const patientRes = await axios.get(`${baseURL}/api/patients`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-  fetchAppointments();
-}, [getAccessTokenSilently, role, user]);
+        setAppointments(apptRes.data);
+        setPatients(patientRes.data);
+      } catch (err) {
+        console.error("Failed to load appointments:", err.message);
+      }
+    };
 
+    fetchData();
+  }, [token]);
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async () => {
-    const token = await getAccessTokenSilently();
+    try {
+      const payload = {
+        ...formData,
+        doctor_id: localStorage.getItem("user_id") // optional
+      };
 
-    const payload = {
-      ...formData,
-      doctor_id: formData.doctor_id || user.sub.split('|')[1] // fallback for demo
-    };
+      if (editing) {
+        await axios.put(`${baseURL}/api/appointments/${editing.id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.post(`${baseURL}/api/appointments`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
 
-    if (editingAppointment) {
-      await axios.put(`${baseURL}/api/appointments/${editingAppointment.id}`, payload, {
+      const updated = await axios.get(`${baseURL}/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-    } else {
-      await axios.post(`${baseURL}/api/appointments`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      setAppointments(updated.data);
+      setShowForm(false);
+      setEditing(null);
+      setFormData({ patient_id: '', date: '', complaint: '' });
+    } catch (err) {
+      console.error("Failed to save appointment:", err.message);
     }
-
-    setShowForm(false);
-    setEditingAppointment(null);
-    setFormData({ doctor_id: '', patient_name: '', date: '', complaint: '' });
-    fetchAppointments();
   };
 
   const handleEdit = (appt) => {
-    setEditingAppointment(appt);
+    setEditing(appt);
     setFormData({
-      doctor_id: appt.doctor_id,
-      patient_name: appt.patient_name,
-      date: appt.date.split('T')[0],
+      patient_id: appt.patient_id,
+      date: appt.date?.split('T')[0],
       complaint: appt.complaint
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    const token = await getAccessTokenSilently();
-    await axios.delete(`${baseURL}/api/appointments/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    fetchAppointments();
+    try {
+      await axios.delete(`${baseURL}/api/appointments/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const updated = await axios.get(`${baseURL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAppointments(updated.data);
+    } catch (err) {
+      console.error("Failed to delete appointment:", err.message);
+    }
   };
+
+  if (!token || !role) {
+    navigate("/login");
+    return null;
+  }
 
   return (
     <Container className="mt-4">
       <h3>Appointments</h3>
 
-      {role === 'secretary' && (
-        <Button className="mb-3" onClick={() => setShowForm(true)}>Add Appointment</Button>
+      {role === "secretary" && (
+        <Button className="mb-3" onClick={() => setShowForm(true)}>
+          Add Appointment
+        </Button>
       )}
 
-      <Table bordered hover>
+      <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Doctor ID</th>
-            <th>Patient Name</th>
+            <th>Patient</th>
             <th>Date</th>
             <th>Complaint</th>
-            {role === 'secretary' && <th>Actions</th>}
+            {role === "secretary" && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {appointments.map((a) => (
-            <tr key={a.id}>
-              <td>{a.doctor_id}</td>
-              <td>{a.patient_name}</td>
-              <td>{a.date?.split('T')[0]}</td>
-              <td>{a.complaint}</td>
-              {role === 'secretary' && (
-                <td>
-                  <Button size="sm" variant="info" onClick={() => handleEdit(a)}>Edit</Button>{' '}
-                  <Button size="sm" variant="danger" onClick={() => handleDelete(a.id)}>Delete</Button>
-                </td>
-              )}
-            </tr>
-          ))}
+          {appointments.map((appt) => {
+            const patient = patients.find(p => p.patient_id === appt.patient_id);
+            return (
+              <tr key={appt.id}>
+                <td>{patient?.full_name || 'Unknown'}</td>
+                <td>{appt.date?.split('T')[0]}</td>
+                <td>{appt.complaint}</td>
+                {role === "secretary" && (
+                  <td>
+                    <Button size="sm" variant="info" onClick={() => handleEdit(appt)}>
+                      Edit
+                    </Button>{' '}
+                    <Button size="sm" variant="danger" onClick={() => handleDelete(appt.id)}>
+                      Delete
+                    </Button>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
 
-      {role === 'secretary' && (
-        <Modal show={showForm} onHide={() => setShowForm(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>{editingAppointment ? 'Edit' : 'Add'} Appointment</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group>
-                <Form.Label>Doctor ID</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="doctor_id"
-                  value={formData.doctor_id}
-                  onChange={handleInputChange}
-                  placeholder="Doctor ID (UUID)"
-                  required
-                />
-              </Form.Group>
+      {/* Modal */}
+      <Modal show={showForm} onHide={() => setShowForm(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{editing ? 'Edit' : 'Add'} Appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Patient</Form.Label>
+              <Form.Select
+                name="patient_id"
+                value={formData.patient_id}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Select Patient --</option>
+                {patients.map(p => (
+                  <option key={p.patient_id} value={p.patient_id}>
+                    {p.full_name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
 
-              <Form.Group>
-                <Form.Label>Patient Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="patient_name"
-                  value={formData.patient_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
+            <Form.Group>
+              <Form.Label>Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
 
-              <Form.Group>
-                <Form.Label>Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group>
-                <Form.Label>Complaint</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  name="complaint"
-                  value={formData.complaint}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSubmit}>Save</Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+            <Form.Group>
+              <Form.Label>Complaint</Form.Label>
+              <Form.Control
+                type="text"
+                name="complaint"
+                value={formData.complaint}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            {editing ? "Update" : "Add"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
