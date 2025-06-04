@@ -1,36 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Container } from 'react-bootstrap';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Table, Button, Modal, Form, Container } from "react-bootstrap";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Loading from "../components/loading";
 
 const Records = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [records, setRecords] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [formData, setFormData] = useState({
-    diagnosis: '',
-    treatment: '',
-    notes: ''
-  });
+  diagnosis: '',
+  treatment: '',
+  notes: '',
+  record_date: ''
+});
+
 
   const navigate = useNavigate();
-  const baseURL = 'http://localhost:5000';
+  const baseURL = "http://localhost:5000";
 
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  const user_id = localStorage.getItem('user_id');
-
- 
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  const user_id = localStorage.getItem("user_id");
 
   useEffect(() => {
     const fetchPatients = async () => {
       const res = await axios.get(`${baseURL}/api/patients`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setPatients(res.data);
     };
+    setIsLoading(false);
 
     fetchPatients();
   }, [token]);
@@ -39,9 +42,12 @@ const Records = () => {
     if (!selectedPatientId) return;
 
     const fetchRecords = async () => {
-      const res = await axios.get(`${baseURL}/api/records/${selectedPatientId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(
+        `${baseURL}/api/records/${selectedPatientId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setRecords(res.data);
     };
 
@@ -49,7 +55,7 @@ const Records = () => {
   }, [selectedPatientId, token]);
 
   const handleInputChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async () => {
@@ -57,27 +63,30 @@ const Records = () => {
       const payload = {
         ...formData,
         patient_id: selectedPatientId,
-        created_by: user_id
+        created_by: user_id,
       };
 
       if (editing) {
         await axios.put(`${baseURL}/api/records/${editing.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       } else {
         await axios.post(`${baseURL}/api/records`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
 
-      const res = await axios.get(`${baseURL}/api/records/${selectedPatientId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(
+        `${baseURL}/api/records/${selectedPatientId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setRecords(res.data);
       setShowForm(false);
       setEditing(null);
-      setFormData({ diagnosis: '', treatment: '', notes: '' });
+      setFormData({ diagnosis: "", treatment: "", notes: "" });
     } catch (err) {
       console.error("Failed to save record:", err.message);
     }
@@ -88,27 +97,29 @@ const Records = () => {
     setFormData({
       diagnosis: record.diagnosis,
       treatment: record.treatment,
-      notes: record.notes
+      notes: record.notes,
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
     await axios.delete(`${baseURL}/api/records/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     const res = await axios.get(`${baseURL}/api/records/${selectedPatientId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     setRecords(res.data);
   };
 
-   if (!token || !role) {
-    navigate('/login');
+  if (!token || !role) {
+    navigate("/login");
     return null;
   }
+
+  if (isLoading) return <Loading />;
 
   return (
     <Container className="mt-4">
@@ -121,7 +132,7 @@ const Records = () => {
           onChange={(e) => setSelectedPatientId(e.target.value)}
         >
           <option value="">-- Select Patient --</option>
-          {patients.map(p => (
+          {patients.map((p) => (
             <option key={p.patient_id} value={p.patient_id}>
               {p.full_name}
             </option>
@@ -129,7 +140,7 @@ const Records = () => {
         </Form.Select>
       </Form.Group>
 
-      {role === 'doctor' && selectedPatientId && (
+      {role === "doctor" && selectedPatientId && (
         <Button className="mb-3" onClick={() => setShowForm(true)}>
           Add Record
         </Button>
@@ -141,7 +152,8 @@ const Records = () => {
             <th>Diagnosis</th>
             <th>Treatment</th>
             <th>Notes</th>
-            {role === 'doctor' && <th>Actions</th>}
+            <th>Record Date</th>
+            {role === "doctor" && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -150,10 +162,23 @@ const Records = () => {
               <td>{r.diagnosis}</td>
               <td>{r.treatment}</td>
               <td>{r.notes}</td>
-              {role === 'doctor' && (
+              <td>{r.record_date?.split('T')[0]}</td>
+              {role === "doctor" && (
                 <td>
-                  <Button size="sm" variant="info" onClick={() => handleEdit(r)}>Edit</Button>{' '}
-                  <Button size="sm" variant="danger" onClick={() => handleDelete(r.id)}>Delete</Button>
+                  <Button
+                    size="sm"
+                    variant="info"
+                    onClick={() => handleEdit(r)}
+                  >
+                    Edit
+                  </Button>{" "}
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(r.id)}
+                  >
+                    Delete
+                  </Button>
                 </td>
               )}
             </tr>
@@ -164,10 +189,20 @@ const Records = () => {
       {/* Modal */}
       <Modal show={showForm} onHide={() => setShowForm(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{editing ? 'Edit' : 'Add'} Record</Modal.Title>
+          <Modal.Title>{editing ? "Edit" : "Add"} Record</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
+            <Form.Group>
+              <Form.Label>Record Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="record_date"
+                value={formData.record_date}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+
             <Form.Group>
               <Form.Label>Diagnosis</Form.Label>
               <Form.Control
@@ -205,7 +240,7 @@ const Records = () => {
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
-            {editing ? 'Update' : 'Add'}
+            {editing ? "Update" : "Add"}
           </Button>
         </Modal.Footer>
       </Modal>

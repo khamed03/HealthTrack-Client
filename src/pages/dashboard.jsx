@@ -1,71 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Card, Row, Col } from 'react-bootstrap';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Container, Row, Col, Card } from "react-bootstrap";
 
-const Dashboard = () => {
-  const [recordsCount, setRecordsCount] = useState(0);
-  const [patientsCount, setPatientsCount] = useState(0);
-  const [appointmentsCount, setAppointmentsCount] = useState(0);
-  const navigate = useNavigate();
-
-  const role = localStorage.getItem("role");
-  const token = localStorage.getItem("token");
-
-  
+const DoctorDashboard = () => {
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalAppointments, setTotalAppointments] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDashboardStats = async () => {
       try {
-        const headers = { Authorization: `Bearer ${token}` };
+        const res = await axios.get("http://localhost:5000/api/dashboard/count", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
 
-        const [recordsRes, patientsRes, appointmentsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/records/all', { headers }),
-          axios.get('http://localhost:5000/api/patients', { headers }),
-          axios.get('http://localhost:5000/api/appointments', { headers }),
-        ]);
-
-        setRecordsCount(recordsRes.data.length);
-        setPatientsCount(patientsRes.data.length);
-        setAppointmentsCount(appointmentsRes.data.length);
+        setTotalPatients(res.data.total_patients);
+        setTotalRecords(res.data.total_records);
+        setTotalAppointments(res.data.total_appointments);
       } catch (err) {
-        console.error("Failed to load dashboard data:", err.message);
+        console.error("Dashboard fetch error:", err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [token]);
+    fetchDashboardStats();
+  }, []);
 
-  if (!token || role !== "doctor") {
-    navigate("/login");
-    return null;
-  }
+  if (isLoading) return <p>Loading...</p>;
 
   return (
-    <Container className="mt-4">
-      <h3>Doctor Dashboard</h3>
-      <Row className="mt-3">
-        <Col>
-          <Card>
+    <Container>
+      <h2 className="mb-4">Doctor Dashboard</h2>
+      <Row className="g-4">
+        <Col md={4}>
+          <Card className="text-white bg-primary">
             <Card.Body>
-              <Card.Title>Medical Records</Card.Title>
-              <Card.Text>{recordsCount}</Card.Text>
+              <Card.Title>Total Patients</Card.Title>
+              <Card.Text>{totalPatients}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
-        <Col>
-          <Card>
+        <Col md={4}>
+          <Card className="text-white bg-success">
             <Card.Body>
-              <Card.Title>Patients</Card.Title>
-              <Card.Text>{patientsCount}</Card.Text>
+              <Card.Title>Total Records</Card.Title>
+              <Card.Text>{totalRecords}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
-        <Col>
-          <Card>
+        <Col md={4}>
+          <Card className="text-white bg-info">
             <Card.Body>
-              <Card.Title>Appointments</Card.Title>
-              <Card.Text>{appointmentsCount}</Card.Text>
+              <Card.Title>Total Appointments</Card.Title>
+              <Card.Text>{totalAppointments}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -74,4 +65,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DoctorDashboard;

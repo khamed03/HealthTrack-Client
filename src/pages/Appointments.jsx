@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Container } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/loading';
+
 
 const Appointments = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +23,7 @@ const Appointments = () => {
   const role = localStorage.getItem("role"); // e.g. 'doctor' or 'secretary'
   const token = localStorage.getItem("token");
 
-  // 🚫 Not logged in? Kick out
+  // Not logged in? Kick out
   
 
   useEffect(() => {
@@ -33,6 +36,8 @@ const Appointments = () => {
         const patientRes = await axios.get(`${baseURL}/api/patients`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
+        setIsLoading(false);
 
         setAppointments(apptRes.data);
         setPatients(patientRes.data);
@@ -105,6 +110,8 @@ const Appointments = () => {
     navigate("/login");
     return null;
   }
+
+  if (isLoading) return <Loading/>;
 
   return (
     <Container className="mt-4">

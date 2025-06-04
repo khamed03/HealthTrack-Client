@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/loading';
+
 
 const Register = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -28,8 +31,12 @@ const Register = () => {
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed.');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) return <Loading/>;
 
   return (
     <Container className="mt-5" style={{ maxWidth: '400px' }}>

@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Form, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/loading';
+
 
 const Patients = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [patients, setPatients] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -29,9 +32,12 @@ const Patients = () => {
       });
       setPatients(res.data);
     };
-
+    setIsLoading(false);
+    
     fetchPatients();
   }, [token]);
+
+  
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -84,6 +90,8 @@ const Patients = () => {
     navigate('/login');
     return null;
   }
+
+  if (isLoading) return <Loading/>;
 
   return (
     <Container className="mt-4">
