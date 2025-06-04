@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/loading';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,23 +11,34 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
+  
 
-    try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+  try {
+    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
 
-      const { token, role, user_id } = res.data;
+    const { token, role, user_id, email: userEmail } = res.data;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
-      localStorage.setItem('user_id', user_id);
+    localStorage.setItem('token', token);
+    localStorage.setItem('role', role);
+    localStorage.setItem('user_id', user_id);
+    localStorage.setItem('email', userEmail);
 
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Login failed.');
+    // ✅ Redirect based on role
+    if (role === "doctor") {
+      navigate("/dashboard");
+    } else if (role === "secretary") {
+      navigate("/appointments");
+    } else {
+      navigate("/"); // fallback
     }
-  };
+
+  } catch (err) {
+    setError(err.response?.data?.error || 'Login failed.');
+  }
+};
+
 
   return (
     <Container className="mt-5" style={{ maxWidth: '400px' }}>
