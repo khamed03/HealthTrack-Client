@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/dashboard';
-import Patients from './pages/Patients';
+import Patients from './pages/patients';
 import Appointments from './pages/Appointments';
 import Records from './pages/records';
 import Login from './pages/Login';
