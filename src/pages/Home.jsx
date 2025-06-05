@@ -48,7 +48,7 @@ const Home = () => {
 
       <div className="mt-4" style={{ maxWidth: "600px" }}>
         <blockquote className="blockquote">
-          <p className="mb-0">"{quote}"</p>
+          <p className="mb-0">Quote Of The Day: "{quote}"</p>
         </blockquote>
       </div>
     </Container>

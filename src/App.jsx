@@ -7,7 +7,7 @@ import Appointments from './pages/appointments';
 import Records from './pages/records';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Layout from './components/Layout'; // includes Sidebar
+import Layout from './components/Layout';
 
 const App = () => {
   const token = localStorage.getItem("token");

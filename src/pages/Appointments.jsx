@@ -20,10 +20,10 @@ const Appointments = () => {
   const baseURL = 'http://localhost:5000';
   const navigate = useNavigate();
 
-  const role = localStorage.getItem("role"); // e.g. 'doctor' or 'secretary'
+  const role = localStorage.getItem("role"); 
   const token = localStorage.getItem("token");
 
-  // Not logged in? Kick out
+
   
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const Appointments = () => {
     try {
       const payload = {
         ...formData,
-        doctor_id: localStorage.getItem("user_id") // optional
+        doctor_id: localStorage.getItem("user_id")
       };
 
       if (editing) {

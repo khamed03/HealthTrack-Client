@@ -1,4 +1,3 @@
-// src/components/Loading.jsx
 import React from 'react';
 import spinner from '../assets/loader.gif';
 
