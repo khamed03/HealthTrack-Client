@@ -4,7 +4,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/dashboard';
 import Patients from './pages/patients';
 import Appointments from './pages/Appointments';
-import Records from './pages/records';
+import Records from './pages/records'; 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Layout from './components/Layout';
