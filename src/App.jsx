@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/dashboard';
 import Patients from './pages/patients';
-import Appointments from './pages/Appointments';
+import Appointments from './pages/appointments';
 import Records from './pages/records';
 import Login from './pages/Login';
 import Register from './pages/Register';
