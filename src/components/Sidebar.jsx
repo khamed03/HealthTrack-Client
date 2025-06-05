@@ -5,10 +5,10 @@ import { Link, useNavigate } from 'react-router-dom';
 const Sidebar = () => {
   const role = localStorage.getItem('role');
   const token = localStorage.getItem('token');
-  const email = localStorage.getItem("email"); // ✅
+  const email = localStorage.getItem("email"); 
   const navigate = useNavigate();
 
-  // ❌ No token = no sidebar
+  
   if (!token || !role) return null;
 
   const handleLogout = () => {

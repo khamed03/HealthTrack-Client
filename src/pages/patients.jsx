@@ -15,6 +15,7 @@ const Patients = () => {
     dob: '',
     gender: ''
   });
+  
 
   const baseURL = 'http://localhost:5000';
   const navigate = useNavigate();

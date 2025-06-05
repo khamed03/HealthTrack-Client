@@ -2,12 +2,12 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/dashboard';
-import Patients from './pages/Patients';
-import Appointments from './pages/Appointments';
+import Patients from './pages/patients';
+import Appointments from './pages/appointments';
 import Records from './pages/records';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Layout from './components/Layout'; // includes Sidebar
+import Layout from './components/Layout';
 
 const App = () => {
   const token = localStorage.getItem("token");
