@@ -3,6 +3,7 @@ import { Button, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../assets/HealthTrack Logo.png";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -50,6 +51,8 @@ const Home = () => {
         <blockquote className="blockquote">
           <p className="mb-0">Quote Of The Day: "{quote}"</p>
         </blockquote>
+
+        <Footer />
       </div>
     </Container>
   );
