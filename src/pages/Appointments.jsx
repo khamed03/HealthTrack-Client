@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Container } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/loading';
+const url = import.meta.env.VITE_SERVER_URL;
 
 
 const Appointments = () => {
@@ -17,7 +18,7 @@ const Appointments = () => {
     complaint: ''
   });
 
-  const baseURL = 'http://localhost:5000';
+  
   const navigate = useNavigate();
 
   const role = localStorage.getItem("role"); 
@@ -29,11 +30,11 @@ const Appointments = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apptRes = await axios.get(`${baseURL}/api/appointments`, {
+        const apptRes = await axios.get(`${url}/api/appointments`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        const patientRes = await axios.get(`${baseURL}/api/patients`, {
+        const patientRes = await axios.get(`${url}/api/patients`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -61,16 +62,16 @@ const Appointments = () => {
       };
 
       if (editing) {
-        await axios.put(`${baseURL}/api/appointments/${editing.id}`, payload, {
+        await axios.put(`${url}/api/appointments/${editing.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post(`${baseURL}/api/appointments`, payload, {
+        await axios.post(`${url}/api/appointments`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
 
-      const updated = await axios.get(`${baseURL}/api/appointments`, {
+      const updated = await axios.get(`${url}/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAppointments(updated.data);
@@ -94,10 +95,10 @@ const Appointments = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${baseURL}/api/appointments/${id}`, {
+      await axios.delete(`${url}/api/appointments/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const updated = await axios.get(`${baseURL}/api/appointments`, {
+      const updated = await axios.get(`${url}/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAppointments(updated.data);

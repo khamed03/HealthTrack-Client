@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card } from "react-bootstrap";
+const url = import.meta.env.VITE_SERVER_URL;
 
 const DoctorDashboard = () => {
   const [totalPatients, setTotalPatients] = useState(0);
@@ -11,7 +12,7 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/dashboard/count", {
+        const res = await axios.get(`${url}/api/dashboard/count`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }

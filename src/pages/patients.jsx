@@ -3,6 +3,7 @@ import { Table, Button, Form, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/loading';
+const url = import.meta.env.VITE_SERVER_URL;
 
 
 const Patients = () => {
@@ -17,7 +18,7 @@ const Patients = () => {
   });
   
 
-  const baseURL = 'http://localhost:5000';
+  
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
@@ -28,7 +29,7 @@ const Patients = () => {
 
   useEffect(() => {
     const fetchPatients = async () => {
-      const res = await axios.get(`${baseURL}/api/patients`, {
+      const res = await axios.get(`${url}/api/patients`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPatients(res.data);
@@ -48,16 +49,16 @@ const Patients = () => {
     const payload = { ...formData, created_by: user_id };
 
     if (editingPatient) {
-      await axios.put(`${baseURL}/api/patients/${editingPatient.patient_id}`, payload, {
+      await axios.put(`${url}/api/patients/${editingPatient.patient_id}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
     } else {
-      await axios.post(`${baseURL}/api/patients`, payload, {
+      await axios.post(`${url}/api/patients`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
     }
 
-    const res = await axios.get(`${baseURL}/api/patients`, {
+    const res = await axios.get(`${url}/api/patients`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setPatients(res.data);
@@ -77,11 +78,11 @@ const Patients = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`${baseURL}/api/patients/${id}`, {
+    await axios.delete(`${url}/api/patients/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    const res = await axios.get(`${baseURL}/api/patients`, {
+    const res = await axios.get(`${url}/api/patients`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setPatients(res.data);
