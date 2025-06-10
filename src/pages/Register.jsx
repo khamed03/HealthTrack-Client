@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "../components/loading";
 const url = import.meta.env.VITE_SERVER_URL;
 
-
+//note
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
