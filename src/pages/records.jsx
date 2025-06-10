@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Container } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../components/loading";
+const url = import.meta.env.VITE_SERVER_URL;
 
 const Records = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +21,7 @@ const Records = () => {
 
 
   const navigate = useNavigate();
-  const baseURL = "http://localhost:5000";
+  
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -28,7 +29,7 @@ const Records = () => {
 
   useEffect(() => {
     const fetchPatients = async () => {
-      const res = await axios.get(`${baseURL}/api/patients`, {
+      const res = await axios.get(`${url}/api/patients`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPatients(res.data);
@@ -43,7 +44,7 @@ const Records = () => {
 
     const fetchRecords = async () => {
       const res = await axios.get(
-        `${baseURL}/api/records/${selectedPatientId}`,
+        `${url}/api/records/${selectedPatientId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -67,17 +68,17 @@ const Records = () => {
       };
 
       if (editing) {
-        await axios.put(`${baseURL}/api/records/${editing.id}`, payload, {
+        await axios.put(`${url}/api/records/${editing.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post(`${baseURL}/api/records`, payload, {
+        await axios.post(`${url}/api/records`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
 
       const res = await axios.get(
-        `${baseURL}/api/records/${selectedPatientId}`,
+        `${url}/api/records/${selectedPatientId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -103,11 +104,11 @@ const Records = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`${baseURL}/api/records/${id}`, {
+    await axios.delete(`${url}/api/records/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const res = await axios.get(`${baseURL}/api/records/${selectedPatientId}`, {
+    const res = await axios.get(`${url}/api/records/${selectedPatientId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

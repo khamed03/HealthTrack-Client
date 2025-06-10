@@ -18,7 +18,7 @@ const Home = () => {
         }
       } catch (err) {
         console.error("Failed to fetch quote:", err.message);
-        setQuote("Keep pushing forward.");
+        //setQuote("Keep pushing forward.");
       }
     };
 

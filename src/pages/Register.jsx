@@ -3,7 +3,9 @@ import { Form, Button, Container, Alert } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../components/loading";
+const url = import.meta.env.VITE_SERVER_URL;
 
+//note
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
@@ -27,7 +29,7 @@ const Register = () => {
     setError("");
 
     try {
-      await axios.post("http://localhost:5000/api/auth/register", form);
+      await axios.post(`${url}/api/auth/register`, form); 
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.error || "Registration failed.");
