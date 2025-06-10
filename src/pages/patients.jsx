@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Loading from '../components/loading';
 const url = import.meta.env.VITE_SERVER_URL;
 
-
+//note
 const Patients = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [patients, setPatients] = useState([]);
